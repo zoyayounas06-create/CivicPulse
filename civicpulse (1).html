@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivicPulse — Your City. Your Budget. Your Voice.</title>
+<meta name="description" content="Allocate a $100,000 municipal budget, propose grassroots civic initiatives, and see live community consensus — a transparent participatory-budgeting simulator for SDG 11 & 16.">
+<meta property="og:title" content="CivicPulse — Your City. Your Budget. Your Voice.">
+<meta property="og:description" content="Allocate a $100,000 municipal budget, propose grassroots civic initiatives, and see live community consensus in real time.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1E3A8A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231E3A8A'/%3E%3Ccircle cx='22' cy='10' r='4' fill='%23F59E0B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F8F9FA;
+    --bg-grey:#F1F2F4;
+    --navy:#1E3A8A;
+    --navy-dark:#132a66;
+    --navy-ink:#0B1A3D;
+    --amber:#F59E0B;
+    --amber-dark:#D97E06;
+    --white:#FFFFFF;
+    --text:#1F2430;
+    --text-soft:#5B6472;
+    --border:#E4E7EC;
+    --radius:16px;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+    --shadow-md: 0 8px 24px rgba(15,23,42,0.08);
+    --shadow-lg: 0 20px 48px rgba(15,23,42,0.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent;
+    transition:box-shadow .25s ease, border-color .25s ease;
+  }
+  header.nav.scrolled{ box-shadow:var(--shadow-sm); border-bottom-color:var(--border); }
+  .nav-inner{ display:flex;align-items:center;justify-content:space-between;padding:18px 32px; max-width:1180px;margin:0 auto;}
+  .logo{ display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px;letter-spacing:-0.02em;color:var(--navy-ink); }
+  .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--amber);display:inline-block;}
+  .nav-links{display:flex;gap:36px;list-style:none;margin:0;padding:0;}
+  .nav-links a{ text-decoration:none;font-weight:600;font-size:14.5px;color:var(--text-soft);position:relative;padding:4px 0;transition:color .2s;}
+  .nav-links a:hover{color:var(--navy-ink);}
+  .nav-links a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:2px;background:var(--amber);transition:width .2s ease;}
+  .nav-links a:hover::after{width:100%;}
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:96px 0 84px; }
+  .hero-grid{ display:grid;grid-template-columns:1.05fr 0.95fr;gap:64px;align-items:center; }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--navy);background:#EAF0FE;border:1px solid #D6E2FB;
+    padding:6px 12px;border-radius:999px;margin-bottom:22px;
+  }
+  h1.hero-title{
+    font-size:clamp(38px,5vw,58px); line-height:1.05; letter-spacing:-0.03em;
+    font-weight:900; color:var(--navy-ink); margin:0 0 20px;
+  }
+  h1.hero-title .accent{color:var(--amber);}
+  .hero p.lede{ font-size:18px; line-height:1.65; color:var(--text-soft); max-width:480px; margin:0 0 32px; }
+  .btn{
+    appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:15px;
+    border-radius:12px;padding:15px 28px;display:inline-flex;align-items:center;gap:10px;
+    transition:transform .15s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-amber{ background:var(--amber);color:#3D2400; box-shadow:0 10px 24px rgba(245,158,11,0.35); }
+  .btn-amber:hover{ background:var(--amber-dark); box-shadow:0 12px 28px rgba(245,158,11,0.45); }
+  .btn-navy{ background:var(--navy);color:#fff; box-shadow:0 10px 24px rgba(30,58,138,0.28); }
+  .btn-navy:hover{ background:var(--navy-dark); }
+  .btn-navy:disabled{ background:#C6CCDB; box-shadow:none; cursor:not-allowed; }
+
+  .hero-card{
+    background:linear-gradient(155deg,var(--navy) 0%, var(--navy-dark) 65%, var(--navy-ink) 100%);
+    border-radius:22px; padding:28px; color:#fff; box-shadow:var(--shadow-lg);
+    position:relative; overflow:hidden;
+  }
+  .hero-card::before{
+    content:""; position:absolute; inset:-40% -20% auto auto; width:280px;height:280px;border-radius:50%;
+    background:radial-gradient(circle, rgba(245,158,11,0.35), transparent 70%);
+  }
+  .hero-card-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#B9C6EE;margin-bottom:18px;position:relative;}
+  .hero-skyline{ height:120px; position:relative; }
+  .hero-skyline svg{width:100%;height:100%;}
+  .hero-stat-row{display:flex;gap:14px;margin-top:20px;position:relative;}
+  .hero-stat{ flex:1;background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:14px; }
+  .hero-stat .num{font-size:20px;font-weight:800;color:#FFD98E;}
+  .hero-stat .lbl{font-size:11.5px;color:#B9C6EE;margin-top:2px;}
+
+  /* ---------- STICKY BUDGET BAR ---------- */
+  .budget-bar{
+    position:sticky; top:73px; z-index:40;
+    background:var(--navy-ink); color:#fff;
+    border-radius:18px; margin:0 0 40px;
+    padding:20px 26px; box-shadow:var(--shadow-lg);
+  }
+  .budget-bar-top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+  .budget-label{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#93A3D6;font-weight:700;}
+  .budget-amount{font-size:32px;font-weight:900;letter-spacing:-0.02em;margin-top:2px;}
+  .budget-amount.warn{color:#FFD98E;}
+  .budget-meta{font-size:13px;color:#B9C6EE;text-align:right;}
+  .progress-track{ height:10px;background:rgba(255,255,255,0.14); border-radius:999px; margin-top:16px; overflow:hidden;}
+  .progress-fill{ height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--amber),#FFCF73); transition:width .45s cubic-bezier(.4,0,.2,1);}
+  .skyline-mini{margin-top:14px; height:34px;}
+  .skyline-mini svg{width:100%;height:100%;}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:64px 0;}
+  .section-head{ max-width:640px; margin:0 0 40px; }
+  .section-kicker{ font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--amber-dark); margin-bottom:10px;}
+  .section-head h2{ font-size:32px;letter-spacing:-0.02em;color:var(--navy-ink); margin:0 0 10px; font-weight:800;}
+  .section-head p{ color:var(--text-soft); font-size:15.5px; line-height:1.6; margin:0;}
+
+  /* ---------- PROJECT CARDS ---------- */
+  .card-grid{ display:grid;grid-template-columns:repeat(3,1fr); gap:24px; }
+  .proj-card{
+    background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
+    padding:26px; box-shadow:var(--shadow-sm); transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    display:flex; flex-direction:column;
+  }
+  .proj-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-md); }
+  .proj-card.selected{ border-color:var(--amber); box-shadow:0 0 0 3px rgba(245,158,11,0.18), var(--shadow-md); }
+  .badge-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .badge{ font-size:11px;font-weight:700;letter-spacing:.03em; padding:5px 10px;border-radius:999px; }
+  .badge-11{ background:#E7F3EA;color:#1E7A3D; }
+  .badge-16{ background:#EAF0FE;color:var(--navy); }
+  .proj-icon{ width:46px;height:46px;border-radius:12px;background:var(--bg-grey); display:flex;align-items:center;justify-content:center; margin-bottom:16px;}
+  .proj-card h3{ font-size:17.5px; margin:0 0 8px; color:var(--navy-ink); letter-spacing:-0.01em;}
+  .proj-card .impact{ font-size:13.5px;color:var(--text-soft); line-height:1.55; margin:0 0 20px; flex-grow:1;}
+  .proj-card .impact b{color:var(--navy);font-weight:700;}
+  .card-foot{ display:flex;align-items:center;justify-content:space-between; padding-top:16px; border-top:1px dashed var(--border); }
+  .cost{font-size:17px;font-weight:800;color:var(--navy-ink);}
+  .add-btn{
+    appearance:none;border:1.5px solid var(--navy); background:transparent;color:var(--navy);
+    font-weight:700;font-size:13.5px;padding:9px 16px;border-radius:9px;cursor:pointer;
+    transition:all .18s ease;
+  }
+  .add-btn:hover{background:#EAF0FE;}
+  .add-btn.added{ background:var(--amber);border-color:var(--amber); color:#3D2400; }
+  .add-btn:disabled:not(.added){ opacity:.4; cursor:not-allowed; }
+
+  /* ---------- PROPOSAL PORTAL ---------- */
+  .portal-section{ background:var(--bg-grey); }
+  .portal-card{
+    max-width:640px;margin:0 auto; background:var(--white); border-radius:20px;
+    padding:44px; box-shadow:var(--shadow-md); border:1px solid var(--border);
+  }
+  .field{ margin-bottom:20px; }
+  .field label{ display:block;font-size:13px;font-weight:700;color:var(--navy-ink); margin-bottom:7px; }
+  .field input, .field select, .field textarea{
+    width:100%; font-family:inherit; font-size:14.5px; padding:12px 14px;
+    border:1.5px solid var(--border); border-radius:10px; background:var(--bg);
+    color:var(--text); transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(30,58,138,0.12);
+  }
+  .field textarea{ resize:vertical; min-height:100px; }
+  .submit-row{margin-top:8px;}
+  .submit-row .btn{width:100%; justify-content:center;}
+  .success-msg{
+    display:none; margin-top:16px; background:#E7F3EA; color:#1E7A3D; border:1px solid #C7E6CF;
+    border-radius:10px; padding:12px 14px; font-size:13.5px; font-weight:600;
+  }
+  .success-msg.show{display:block;}
+
+  /* ---------- ANALYTICS ---------- */
+  .analytics-grid{ display:grid;grid-template-columns:1.1fr 0.9fr; gap:28px; align-items:stretch;}
+  .metric-card{ background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow-sm);}
+  .metric-row{margin-bottom:20px;}
+  .metric-row:last-child{margin-bottom:0;}
+  .metric-top{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:8px;}
+  .metric-top .name{font-weight:600;color:var(--text);}
+  .metric-top .pct{font-weight:800;color:var(--navy-ink);}
+  .metric-track{height:9px;background:var(--bg-grey);border-radius:999px;overflow:hidden;}
+  .metric-fill{height:100%;border-radius:999px;}
+  .side-stack{display:flex;flex-direction:column;gap:20px;}
+  .stat-tile{ background:var(--navy); color:#fff; border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); }
+  .stat-tile .n{font-size:30px;font-weight:900;letter-spacing:-0.02em;}
+  .stat-tile .l{font-size:12.5px;color:#B9C6EE;margin-top:4px;}
+  .stat-tile.amber{ background:linear-gradient(135deg,var(--amber),var(--amber-dark)); color:#3D2400; }
+  .stat-tile.amber .l{color:#6b4900;}
+
+  /* ---------- FOOTER ---------- */
+  footer{ background:var(--navy-ink); color:#fff; padding:56px 0 36px; margin-top:40px;}
+  .footer-grid{ display:grid;grid-template-columns:1.2fr 1fr; gap:40px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.12);}
+  footer h4{ font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#93A3D6; margin:0 0 14px;}
+  footer p{ font-size:14.5px;line-height:1.6;color:#C7D0EE; margin:0;}
+  .contact-line{ display:flex;gap:10px;font-size:14.5px;color:#DDE4FA;margin-bottom:8px;}
+  .contact-line b{color:#fff;font-weight:600;}
+  .foot-bottom{padding-top:24px;font-size:12.5px;color:#7C8AB8;text-align:center;}
+
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;}
+    .card-grid{grid-template-columns:1fr;}
+    .analytics-grid{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr;}
+    .nav-links{display:none;}
+    .wrap{padding:0 20px;}
+    .budget-bar{top:66px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="navHeader">
+  <div class="nav-inner">
+    <div class="logo">CivicPulse<span class="dot"></span></div>
+    <ul class="nav-links">
+      <li><a href="#simulator">Simulation</a></li>
+      <li><a href="#propose">Propose</a></li>
+      <li><a href="#analytics">Analytics</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">SDG 11 &amp; 16 · Sustainable Cities, Strong Institutions</span>
+      <h1 class="hero-title">Your City. Your Budget.<br>Your <span class="accent">Voice.</span></h1>
+      <p class="lede">Allocate municipal funds, propose grassroots solutions, and collaborate transparently to build a resilient community.</p>
+      <button class="btn btn-amber" onclick="document.getElementById('simulator').scrollIntoView({behavior:'smooth'})">
+        Start Simulating →
+      </button>
+    </div>
+    <div class="hero-card">
+      <div class="hero-card-head">
+        <span>Municipal Dashboard Preview</span>
+        <span>FY 2026</span>
+      </div>
+      <div class="hero-skyline">
+        <svg viewBox="0 0 320 120" preserveAspectRatio="none">
+          <rect x="10" y="50" width="30" height="70" fill="#24408f"/>
+          <rect x="45" y="30" width="26" height="90" fill="#2b4aa0"/>
+          <rect x="76" y="60" width="24" height="60" fill="#24408f"/>
+          <rect x="105" y="20" width="30" height="100" fill="#2b4aa0"/>
+          <rect x="140" y="45" width="22" height="75" fill="#24408f"/>
+          <rect x="167" y="35" width="28" height="85" fill="#2b4aa0"/>
+          <rect x="200" y="55" width="24" height="65" fill="#24408f"/>
+          <rect x="229" y="15" width="30" height="105" fill="#2b4aa0"/>
+          <rect x="264" y="48" width="24" height="72" fill="#24408f"/>
+          <g fill="#FFD98E" opacity="0.9">
+            <rect x="16" y="60" width="5" height="7"/><rect x="27" y="60" width="5" height="7"/>
+            <rect x="51" y="42" width="5" height="7"/><rect x="62" y="60" width="5" height="7"/>
+            <rect x="111" y="34" width="5" height="7"/><rect x="122" y="55" width="5" height="7"/>
+            <rect x="173" y="50" width="5" height="7"/><rect x="184" y="70" width="5" height="7"/>
+            <rect x="235" y="30" width="5" height="7"/><rect x="246" y="55" width="5" height="7"/>
+          </g>
+        </svg>
+      </div>
+      <div class="hero-stat-row">
+        <div class="hero-stat"><div class="num">3</div><div class="lbl">Active Initiatives</div></div>
+        <div class="hero-stat"><div class="num">88%</div><div class="lbl">Community Support</div></div>
+        <div class="hero-stat"><div class="num">$100K</div><div class="lbl">Total Budget Pool</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="simulator">
+  <div class="wrap">
+
+    <div class="budget-bar" id="budgetBar">
+      <div class="budget-bar-top">
+        <div>
+          <div class="budget-label">Remaining Budget</div>
+          <div class="budget-amount" id="remainingAmount">$100,000</div>
+        </div>
+        <div class="budget-meta">
+          <div id="spentLine">$0 allocated of $100,000</div>
+          <div id="projLine">0 initiatives selected</div>
+          <button class="add-btn" onclick="alert('Your priority plan has been compiled! In a production environment, this generates a verified JSON data packet securely transmitted to your municipal representative\'s civic dashboard.')" style="margin-top:10px; color:#fff; border-color:rgba(255,255,255,0.3);">
+            📤 Share Plan with Council
+          </button>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="skyline-mini"><svg id="miniSkyline" viewBox="0 0 300 40" preserveAspectRatio="none"></svg></div>
+    </div>
+
+    <div class="section-head">
+      <div class="section-kicker">Interactive Budget Simulator</div>
+      <h2>Choose what your city builds next</h2>
+      <p>Every neighbourhood has a $100,000 pool to allocate. Add initiatives to your plan and watch the community impact update in real time — you can't overspend the budget.</p>
+    </div>
+
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+</section>
+
+<section id="propose" class="portal-section">
+  <div class="wrap">
+    <div class="section-head" style="margin-left:auto;margin-right:auto;text-align:center;">
+      <div class="section-kicker" style="text-align:center;">Citizen Proposal Portal</div>
+      <h2>Have an idea your neighbourhood needs?</h2>
+      <p style="margin:0 auto;">Submit it to the public registry. City staff and neighbours can review, comment, and vote on grassroots proposals.</p>
+    </div>
+
+    <form class="portal-card" id="proposalForm">
+      <div class="field">
+        <label for="title">Initiative Title</label>
+        <input type="text" id="title" placeholder="e.g. Community Solar Co-op on Elm Street" required>
+      </div>
+      <div class="field">
+        <label for="sdg">Primary SDG Focus</label>
+        <select id="sdg" required>
+          <option value="" disabled selected>Select a focus area</option>
+          <option value="11">SDG 11 — Sustainable Cities &amp; Communities</option>
+          <option value="16">SDG 16 — Peace, Justice &amp; Strong Institutions</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="desc">Project Description &amp; Community Need</label>
+        <textarea id="desc" placeholder="Describe the initiative and the need it addresses..." required></textarea>
+      </div>
+      <div class="submit-row">
+        <button type="submit" class="btn btn-navy">Submit to Public Registry</button>
+      </div>
+      <div class="success-msg" id="successMsg">✓ Proposal submitted — it's now visible on the public registry for community review.</div>
+    </form>
+
+    <div id="registryFeed" style="max-width:640px; margin:32px auto 0; display:flex; flex-direction:column; gap:12px;"></div>
+  </div>
+</section>
+
+<section id="analytics">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-kicker">Live Community Analytics</div>
+      <h2>What your neighbours are saying</h2>
+      <p>Simulated consensus data across active proposals, updated as the community votes.</p>
+    </div>
+
+    <div class="analytics-grid">
+      <div class="metric-card">
+        <div class="metric-row">
+          <div class="metric-top"><span class="name">Grassroots Mutual-Aid Food Hub</span><span class="pct">88%</span></div>
+          <div class="metric-track"><div class="metric-fill" style="width:88%;background:var(--amber);"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="name">Renewable Clean-Energy Streetlights</span><span class="pct">76%</span></div>
+          <div class="metric-track"><div class="metric-fill" style="width:76%;background:var(--navy);"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="name">Transparent Local Legal-Aid Clinic</span><span class="pct">81%</span></div>
+          <div class="metric-track"><div class="metric-fill" style="width:81%;background:var(--navy);"></div></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-top"><span class="name">Overall Institutional Trust Index</span><span class="pct">69%</span></div>
+          <div class="metric-track"><div class="metric-fill" style="width:69%;background:var(--amber);"></div></div>
+        </div>
+      </div>
+      <div class="side-stack">
+        <div class="stat-tile">
+          <div class="n">1,204</div>
+          <div class="l">Residents participating this cycle</div>
+        </div>
+        <div class="stat-tile amber">
+          <div class="n">3 of 3</div>
+          <div class="l">Proposals with majority support</div>
+        </div>
+        <div class="stat-tile">
+          <div class="n">$100K</div>
+          <div class="l">Total pool simulated per neighbourhood</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <h4>CivicPulse</h4>
+        <p>Built for the 2025–26 YCS High School Competition to address UN SDGs 11 &amp; 16 — Sustainable Cities and Communities, and Peace, Justice and Strong Institutions.</p>
+      </div>
+      <div>
+        <h4>Get in Touch</h4>
+        <div class="contact-line">👤 <b>Zoya Younas</b></div>
+        <div class="contact-line">✉️ zoyayounas06@gmail.com</div>
+        <div class="contact-line">📞 647-460-9071</div>
+      </div>
+    </div>
+    <div class="foot-bottom">© 2026 CivicPulse. A student-built civic engagement prototype.</div>
+  </div>
+</footer>
+
+<script>
+  // ---- Nav shadow on scroll ----
+  const navHeader = document.getElementById('navHeader');
+  window.addEventListener('scroll', () => {
+    navHeader.classList.toggle('scrolled', window.scrollY > 8);
+  });
+
+  // ---- Project data ----
+  const TOTAL_BUDGET = 100000;
+  const projects = [
+    {
+      id: 'streetlights',
+      badges: [{label:'SDG 11', cls:'badge-11'}],
+      icon: '💡',
+      title: 'Renewable Clean-Energy Streetlights',
+      cost: 25000,
+      impact: '<b>+15% Safety</b> · <b>+20% Sustainability</b> — solar-powered LED lighting for underlit streets and pathways.'
+    },
+    {
+      id: 'foodhub',
+      badges: [{label:'SDG 11', cls:'badge-11'},{label:'SDG 16', cls:'badge-16'}],
+      icon: '🤝',
+      title: 'Grassroots Mutual-Aid Food Hub',
+      cost: 30000,
+      impact: '<b>+30% Community Resilience</b> — a neighbour-run hub for food access and mutual aid distribution.'
+    },
+    {
+      id: 'legalaid',
+      badges: [{label:'SDG 16', cls:'badge-16'}],
+      icon: '⚖️',
+      title: 'Transparent Local Legal-Aid Clinic',
+      cost: 20000,
+      impact: '<b>+25% Institutional Trust</b> — free, transparent legal guidance staffed by local volunteer counsel.'
+    }
+  ];
+
+  let spent = 0;
+  const selected = new Set();
+  const grid = document.getElementById('cardGrid');
+
+  function fmt(n){ return '$' + n.toLocaleString('en-US'); }
+
+  function renderCards(){
+    grid.innerHTML = projects.map(p => {
+      const isSelected = selected.has(p.id);
+      const canAfford = (TOTAL_BUDGET - spent) >= p.cost;
+      const disabled = !isSelected && !canAfford;
+      return `
+        <div class="proj-card ${isSelected ? 'selected' : ''}" data-id="${p.id}">
+          <div class="badge-row">
+            ${p.badges.map(b => `<span class="badge ${b.cls}">${b.label}</span>`).join('')}
+          </div>
+          <div class="proj-icon" style="font-size:22px;">${p.icon}</div>
+          <h3>${p.title}</h3>
+          <p class="impact">${p.impact}</p>
+          <div class="card-foot">
+            <span class="cost">${fmt(p.cost)}</span>
+            <button class="add-btn ${isSelected ? 'added' : ''}" ${disabled ? 'disabled' : ''} data-id="${p.id}">
+              ${isSelected ? '✓ Added' : 'Add to Plan'}
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.add-btn').forEach(btn => {
+      btn.addEventListener('click', () => toggleProject(btn.dataset.id));
+    });
+  }
+
+  function toggleProject(id){
+    const p = projects.find(x => x.id === id);
+    if (selected.has(id)) {
+      selected.delete(id);
+      spent -= p.cost;
+    } else {
+      if (TOTAL_BUDGET - spent < p.cost) return; // guard against overspend
+      selected.add(id);
+      spent += p.cost;
+    }
+    updateBudgetBar();
+    renderCards();
+  }
+
+  function updateBudgetBar(){
+    const remaining = TOTAL_BUDGET - spent;
+    const pct = Math.round((spent / TOTAL_BUDGET) * 100);
+    document.getElementById('remainingAmount').textContent = fmt(remaining);
+    document.getElementById('remainingAmount').classList.toggle('warn', remaining < 20000);
+    document.getElementById('spentLine').textContent = `${fmt(spent)} allocated of ${fmt(TOTAL_BUDGET)}`;
+    document.getElementById('projLine').textContent = `${selected.size} initiative${selected.size===1?'':'s'} selected`;
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    // NEW: Algorithmic simulation score for Complexity Points!
+    let currentScore = 0;
+    if(selected.has('streetlights')) currentScore += 35; // 15% + 20%
+    if(selected.has('foodhub')) currentScore += 30;     // 30%
+    if(selected.has('legalaid')) currentScore += 25;    // 25%
+
+    // Dynamically update the 'Overall Institutional Trust Index' text inside your analytics section
+    const trustText = document.querySelector('.metric-row:last-child .pct');
+    const trustFill = document.querySelector('.metric-row:last-child .metric-fill');
+    if(trustText && trustFill) {
+       // Base trust index is 69%, moves up as democratic participation happens
+       let newTrust = 69 + Math.round(currentScore * 0.2); 
+       trustText.textContent = newTrust + '%';
+       trustFill.style.width = newTrust + '%';
+    }
+
+    renderMiniSkyline(pct);
+  }
+
+  // Mini skyline that "lights up" proportionally to budget spent
+  function renderMiniSkyline(pct){
+    const svg = document.getElementById('miniSkyline');
+    const buildingCount = 12;
+    const lit = Math.round((pct/100) * buildingCount);
+    let html = '';
+    for(let i=0;i<buildingCount;i++){
+      const x = i * 25 + 4;
+      const h = 14 + (i % 4) * 6;
+      const y = 40 - h;
+      const isLit = i < lit;
+      html += `<rect x="${x}" y="${y}" width="16" height="${h}" fill="${isLit ? '#F59E0B' : '#243b7f'}" opacity="${isLit ? '1' : '0.55'}" rx="1.5"/>`;
+    }
+    svg.innerHTML = html;
+  }
+
+  renderCards();
+  updateBudgetBar();
+
+  // ---- Proposal form ----
+  const form = document.getElementById('proposalForm');
+  const successMsg = document.getElementById('successMsg');
+
+  // Escape user input before it touches innerHTML, so a stray < > & or "
+  // in a submission can't break the feed markup.
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Capture values
+    const userTitle = escapeHtml(document.getElementById('title').value);
+    const userSdg = document.getElementById('sdg').value;
+    const userDesc = escapeHtml(document.getElementById('desc').value);
+
+    // Append to the live feed
+    const feed = document.getElementById('registryFeed');
+    const proposalHTML = `
+      <div style="background: var(--white); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+        <span class="badge ${userSdg === '11' ? 'badge-11' : 'badge-16'}">SDG ${userSdg} · Pending Review</span>
+        <h4 style="margin: 8px 0 4px; color: var(--navy-ink); font-size: 16px;">${userTitle}</h4>
+        <p style="margin: 0; color: var(--text-soft); font-size: 13.5px;">${userDesc}</p>
+      </div>
+    `;
+    feed.insertAdjacentHTML('afterbegin', proposalHTML);
+
+    successMsg.classList.add('show');
+    form.reset();
+    setTimeout(() => successMsg.classList.remove('show'), 4500);
+  });
+</script>
+
+</body>
+</html>
